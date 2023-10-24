@@ -42,6 +42,7 @@ import chip.devicecontroller.DeviceAttestationDelegate
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
+import com.google.homesampleapp.GHSAFM3pEcoApplication
 import com.google.homesampleapp.R
 import com.google.homesampleapp.TaskStatus
 import com.google.homesampleapp.chip.ChipClient
@@ -56,6 +57,7 @@ import com.google.homesampleapp.isMultiAdminCommissioning
 import com.google.homesampleapp.screens.shared.SelectedDeviceViewModel
 import com.google.homesampleapp.screens.shared.UserPreferencesViewModel
 import com.google.homesampleapp.showAlertDialog
+import com.google.homesampleapp.websocket.WebSocketRepositoryFactory
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -88,6 +90,7 @@ class HomeFragment : Fragment() {
   @Inject internal lateinit var devicesStateRepository: DevicesStateRepository
   @Inject internal lateinit var userPreferencesRepository: UserPreferencesRepository
   @Inject internal lateinit var chipClient: ChipClient
+  @Inject internal lateinit var webSocketRepositoryFactory: WebSocketRepositoryFactory
 
   // Fragment binding.
   private lateinit var binding: FragmentHomeBinding
@@ -420,6 +423,11 @@ class HomeFragment : Fragment() {
     } else {
       binding.noDevicesLayout.visibility = View.GONE
       binding.devicesListRecyclerView.visibility = View.VISIBLE
+    }
+
+    if(GHSAFM3pEcoApplication.homeAssistantWebSocketRepository?.getWebSocketUrl() != devicesUiModel.webSocketUrl) {
+      GHSAFM3pEcoApplication.homeAssistantWebSocketRepository?.shutdown()
+      GHSAFM3pEcoApplication.homeAssistantWebSocketRepository = webSocketRepositoryFactory.create(devicesUiModel.webSocketUrl)
     }
 
     // Codelab Info alert dialog

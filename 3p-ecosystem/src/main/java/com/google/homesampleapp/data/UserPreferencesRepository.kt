@@ -20,13 +20,13 @@ import android.content.Context
 import androidx.lifecycle.asLiveData
 import com.google.homesampleapp.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /** Singleton repository that updates and persists settings and user preferences. */
 @Singleton
@@ -72,6 +72,18 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
     userPreferencesDataStore.updateData { prefs ->
       prefs.toBuilder().setShowHalfsheetNotification(show).build()
     }
+  }
+
+  suspend fun updateWebSocketUrl(url: String) {
+    Timber.d("updateWebSocketUrl [$url]")
+    userPreferencesDataStore.updateData { prefs ->
+      prefs.toBuilder().setWebSocketUrl(url).build()
+    }
+  }
+
+  suspend fun getWebSocketUrl(): String {
+    Timber.d("getWebSocketUrl")
+    return userPreferencesFlow.first().webSocketUrl
   }
 
   suspend fun isHideCodelabInfo(): Boolean {

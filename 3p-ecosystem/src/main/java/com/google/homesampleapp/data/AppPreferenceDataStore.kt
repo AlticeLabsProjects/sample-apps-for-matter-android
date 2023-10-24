@@ -18,12 +18,12 @@ package com.google.homesampleapp.data
 
 import androidx.preference.PreferenceDataStore
 import com.google.homesampleapp.stringToBoolean
-import java.security.InvalidParameterException
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
+import java.security.InvalidParameterException
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * A custom datastore for Settings data.
@@ -38,22 +38,28 @@ class AppPreferenceDataStore @Inject constructor() : PreferenceDataStore() {
 
   override fun putString(key: String?, value: String?) {
     Timber.d("putString [$key] [$value]")
-    val boolValue = stringToBoolean(key!!)
+
     runBlocking {
       when (key) {
         // codelab represents "showing" the codelab which is the inverse of the "hide" proto value.
         "codelab" -> {
+          val boolValue = stringToBoolean(key!!)
           userPreferencesRepository.updateHideCodelabInfo(!boolValue)
         }
         // offline_devices represents "showing" the offline devices which is the inverse of the
         // "hide" proto value.
         "offline_devices" -> {
+          val boolValue = stringToBoolean(key!!)
           userPreferencesRepository.updateHideOfflineDevices(!boolValue)
         }
         // halfsheet_notification represents "showing" the offline devices which is the
         // same as the "show" proto value.
         "halfsheet_notification" -> {
+          val boolValue = stringToBoolean(key!!)
           userPreferencesRepository.updateShowHalfsheetNotification(boolValue)
+        }
+        "web_socket_url" -> {
+          userPreferencesRepository.updateWebSocketUrl(value!!)
         }
         else -> {
           throw InvalidParameterException()
@@ -80,6 +86,8 @@ class AppPreferenceDataStore @Inject constructor() : PreferenceDataStore() {
             // halfsheet_notification represents "showing" the halfsheetnotification which is the
             // same as the "show" proto value.
             "halfsheet_notification" -> (userPreferences.showHalfsheetNotification).toString()
+
+            "web_socket_url" -> (userPreferences.webSocketUrl).toString()
             else -> throw InvalidParameterException()
           }
     }

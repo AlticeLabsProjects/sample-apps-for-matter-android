@@ -58,7 +58,7 @@ android {
      */
     defaultConfig {
         // Uniquely identifies the package for publishing.
-        applicationId = "com.google.homesampleapp"
+        applicationId = "com.alticelabs.homesampleapp"
 
         // Defines the minimum API level required to run the app.
         minSdk = 27
@@ -217,6 +217,9 @@ dependencies {
     implementation(libs.timber)
     // Needed for using BaseEncoding class
     implementation(libs.guava)
+
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.okhttp)
 
     // Test
     testImplementation(libs.junit)

@@ -20,16 +20,19 @@ option java_multiple_files = true;
 // User preferences as well as settings used by the application
 // that are persisted in a Proto DataStore.
 message UserPreferences {
+  // Matter Server WebSocket Url to be used to comission devices.
+  string web_socket_url = 1;
+
   // Filter for showing / hiding the codelab information on the Home screen.
   // Using "hide" instead of show so that the default value (false) is the
   // default behavior we want.
-  bool hide_codelab_info = 1;
+  bool hide_codelab_info = 2;
 
   // Filter for showing / hiding offline devices on the Home screen.
   // Using "hide" instead of "show" so that the default value (false) is the
   // default behavior we want (i.e. hide_offline_devices is false by default,
   // which means that offline devices will be shown by default).
-  bool hide_offline_devices = 2;
+  bool hide_offline_devices = 3;
 
   // Filter for showing / hiding HalfSheet Notification.
   // (proactive commissionable discovery notifications for Matter devices).
@@ -45,5 +48,5 @@ message UserPreferences {
   // If state changes from show to hide: notification can then be suppressed immediately.
   // For consistency, a change to that setting will only take effect when the application exits
   // and then reenters the foreground state.
-  bool show_halfsheet_notification = 3;
+  bool show_halfsheet_notification = 4;
 }

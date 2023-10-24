@@ -19,6 +19,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+        <EditTextPreference
+            app:key="web_socket_url"
+            app:title="WebSocket Url"
+            android:defaultValue="ws://192.168.1.147:5580/ws"
+            app:useSimpleSummaryProvider="true"
+            app:icon="@drawable/baseline_web_24"/>
+
          <SwitchPreferenceCompat
             app:key="codelab"
             app:title="Codelab"

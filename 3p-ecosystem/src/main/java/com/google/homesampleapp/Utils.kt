@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import com.google.protobuf.Timestamp
+import timber.log.Timber
 import java.io.File
 import java.lang.Long.max
 import java.security.SecureRandom
@@ -31,7 +32,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
-import timber.log.Timber
 
 /** Variety of constants and utility functions used in the app. */
 
@@ -383,3 +383,4 @@ object ToastTimber {
     if (Looper.myLooper() == null) Looper.prepare()
   }
 }
+

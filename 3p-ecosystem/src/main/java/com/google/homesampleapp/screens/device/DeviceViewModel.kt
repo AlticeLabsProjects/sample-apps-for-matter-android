@@ -31,6 +31,7 @@ import com.google.android.gms.home.matter.common.DeviceDescriptor
 import com.google.android.gms.home.matter.common.Discriminator
 import com.google.homesampleapp.BackgroundWorkAlertDialogAction
 import com.google.homesampleapp.DISCRIMINATOR
+import com.google.homesampleapp.GHSAFM3pEcoApplication
 import com.google.homesampleapp.ITERATION
 import com.google.homesampleapp.OPEN_COMMISSIONING_WINDOW_API
 import com.google.homesampleapp.OPEN_COMMISSIONING_WINDOW_DURATION_SECONDS
@@ -240,11 +241,21 @@ constructor(
       try {
         _backgroundWorkAlertDialogAction.postValue(
             BackgroundWorkAlertDialogAction.Show(
-                "Unlinking the device",
-                "Calling the device to remove the sample app's fabric. " +
-                    "If the device is offline, this will fail when the call times out, " +
+                "Removing the device",
+                "Calling the matter server to remove the device. " +
+                    "It may fail if this was already removed, tor if the the call times out, " +
                     "and this may take a while."))
-        chipClient.awaitUnpairDevice(deviceId)
+        val result = GHSAFM3pEcoApplication.homeAssistantWebSocketRepository?.removeMatterDevice(deviceId)
+
+        if (result?.success == false) {
+          Timber.d("Removing the device failed: $result")
+          _backgroundWorkAlertDialogAction.postValue(BackgroundWorkAlertDialogAction.Hide)
+          // Show a dialog so the user has the option to force remove without unlinking the device.
+          _uiActionLiveData.postValue(
+            UiAction(id = DEVICE_REMOVAL_CONFIRM, data = deviceId.toString()))
+          return@launch
+        }
+
       } catch (e: Exception) {
         Timber.e(e, "Unlinking the device failed.")
         _backgroundWorkAlertDialogAction.postValue(BackgroundWorkAlertDialogAction.Hide)
@@ -259,6 +270,32 @@ constructor(
       _uiActionLiveData.postValue(UiAction(id = DEVICE_REMOVAL_COMPLETED))
     }
   }
+  /*fun removeDevice(deviceId: Long) {
+    Timber.d("Removing device [${deviceId}]")
+    viewModelScope.launch {
+      try {
+        _backgroundWorkAlertDialogAction.postValue(
+          BackgroundWorkAlertDialogAction.Show(
+            "Unlinking the device",
+            "Calling the device to remove the sample app's fabric. " +
+                    "If the device is offline, this will fail when the call times out, " +
+                    "and this may take a while."))
+        chipClient.awaitUnpairDevice(deviceId)
+      } catch (e: Exception) {
+        Timber.e(e, "Unlinking the device failed.")
+        _backgroundWorkAlertDialogAction.postValue(BackgroundWorkAlertDialogAction.Hide)
+        // Show a dialog so the user has the option to force remove without unlinking the device.
+        _uiActionLiveData.postValue(
+          UiAction(id = DEVICE_REMOVAL_CONFIRM, data = deviceId.toString()))
+        return@launch
+      }
+      // Remove device from the app's devices repository.
+      _backgroundWorkAlertDialogAction.postValue(BackgroundWorkAlertDialogAction.Hide)
+      devicesRepository.removeDevice(deviceId)
+      _uiActionLiveData.postValue(UiAction(id = DEVICE_REMOVAL_COMPLETED))
+    }
+  }*/
+
 
   // Removes the device from the app's devices repository, and does not unlink the fabric
   // from the device.

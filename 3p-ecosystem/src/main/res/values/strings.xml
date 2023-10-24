@@ -15,7 +15,7 @@
 -->
 
 <resources>
-    <string name="app_name">GHSAFM-3p-ecosystem</string>
+    <string name="app_name">Matter Sample App</string>
 
     <!-- Device Types -->
     <string name="device_type_unspecified" translatable="false">unspecified</string>

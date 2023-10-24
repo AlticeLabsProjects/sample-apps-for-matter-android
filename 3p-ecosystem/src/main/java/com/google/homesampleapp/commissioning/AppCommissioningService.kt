@@ -25,6 +25,7 @@ import com.google.android.gms.home.matter.commissioning.CommissioningService
 import com.google.android.gms.home.matter.commissioning.CommissioningService.CommissioningError
 import com.google.homesampleapp.APP_NAME
 import com.google.homesampleapp.DeviceIdGenerator
+import com.google.homesampleapp.GHSAFM3pEcoApplication
 import com.google.homesampleapp.R
 import com.google.homesampleapp.chip.ChipClient
 import com.google.homesampleapp.data.DevicesRepository
@@ -50,6 +51,8 @@ class AppCommissioningService : Service(), CommissioningService.Callback {
   @Inject internal lateinit var devicesRepository: DevicesRepository
   @Inject internal lateinit var devicesStateRepository: DevicesStateRepository
   @Inject internal lateinit var chipClient: ChipClient
+
+ private val commissionToRemoteMatterFabric = true
 
   private val serviceJob = Job()
   private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -97,19 +100,36 @@ class AppCommissioningService : Service(), CommissioningService.Callback {
     // CODELAB: onCommissioningRequested()
     // Perform commissioning on custom fabric for the sample app.
     serviceScope.launch {
-      val deviceId = getNextDeviceId(DeviceIdGenerator.Random)
-      try {
-        Timber.d(
-            "Commissioning: App fabric -> ChipClient.establishPaseConnection(): deviceId [${deviceId}]")
-        chipClient.awaitEstablishPaseConnection(
-            deviceId,
-            metadata.networkLocation.ipAddress.hostAddress!!,
-            metadata.networkLocation.port,
-            metadata.passcode)
 
-        Timber.d(
-            "Commissioning: App fabric -> ChipClient.commissionDevice(): deviceId [${deviceId}]")
-        chipClient.awaitCommissionDevice(deviceId, null)
+      var deviceId = getNextDeviceId(DeviceIdGenerator.Random)
+      try {
+        if(!commissionToRemoteMatterFabric) {
+            Timber.d("Commissioning: App fabric -> ChipClient.establishPaseConnection(): deviceId [${deviceId}]")
+            chipClient.awaitEstablishPaseConnection(
+                deviceId,
+                metadata.networkLocation.ipAddress.hostAddress!!,
+                metadata.networkLocation.port,
+                metadata.passcode
+            )
+            Timber.d(
+                "Commissioning: App fabric -> ChipClient.commissionDevice(): deviceId [${deviceId}]"
+            )
+            chipClient.awaitCommissionDevice(deviceId, null)
+        } else {
+            Timber.d("Commissioning: Remote fabric -> deviceId [${deviceId}]")
+            val result =
+                GHSAFM3pEcoApplication.homeAssistantWebSocketRepository?.commissionMatterDeviceOnNetwork(metadata.passcode)
+            Timber.d("Server commissioning was ${if (result?.success == true) "successful nodeId: ${result.nodeId}" else "not successful (${result?.errorCode})"}")
+
+
+            if (result?.success != true) {
+                commissioningServiceDelegate.sendCommissioningError(CommissioningError.OTHER)
+                return@launch
+            }
+
+            deviceId = result.nodeId?.toLong() ?: deviceId
+        }
+
       } catch (e: Exception) {
         Timber.e(e, "onCommissioningRequested() failed")
         // No way to determine whether this was ATTESTATION_FAILED or DEVICE_UNREACHABLE.

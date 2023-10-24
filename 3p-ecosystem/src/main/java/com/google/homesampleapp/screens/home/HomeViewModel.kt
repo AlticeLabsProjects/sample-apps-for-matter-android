@@ -34,7 +34,12 @@ import com.google.android.gms.home.matter.commissioning.CommissioningRequest
 import com.google.android.gms.home.matter.commissioning.CommissioningResult
 import com.google.android.gms.home.matter.commissioning.DeviceInfo
 import com.google.android.gms.home.matter.commissioning.SharedDeviceData
-import com.google.android.gms.home.matter.commissioning.SharedDeviceData.*
+import com.google.android.gms.home.matter.commissioning.SharedDeviceData.EXTRA_COMMISSIONING_WINDOW_EXPIRATION
+import com.google.android.gms.home.matter.commissioning.SharedDeviceData.EXTRA_DEVICE_NAME
+import com.google.android.gms.home.matter.commissioning.SharedDeviceData.EXTRA_DEVICE_TYPE
+import com.google.android.gms.home.matter.commissioning.SharedDeviceData.EXTRA_MANUAL_PAIRING_CODE
+import com.google.android.gms.home.matter.commissioning.SharedDeviceData.EXTRA_PRODUCT_ID
+import com.google.android.gms.home.matter.commissioning.SharedDeviceData.EXTRA_VENDOR_ID
 import com.google.homesampleapp.Device
 import com.google.homesampleapp.Devices
 import com.google.homesampleapp.DevicesState
@@ -56,12 +61,12 @@ import com.google.homesampleapp.data.DevicesStateRepository
 import com.google.homesampleapp.data.UserPreferencesRepository
 import com.google.homesampleapp.getTimestampForNow
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDateTime
-import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDateTime
+import javax.inject.Inject
 
 /**
  * Encapsulates all of the information on a specific device. Note that the app currently only
@@ -88,7 +93,8 @@ data class DevicesUiModel(
     // the userpreferences data yet.
     val showCodelabInfo: Boolean,
     // Whether offline devices should be shown.
-    val showOfflineDevices: Boolean
+    val showOfflineDevices: Boolean,
+    val webSocketUrl: String
 )
 
 /** The ViewModel for the Home Fragment. See [HomeFragment] for additional information. */
@@ -153,11 +159,12 @@ constructor(
           devices: Devices,
           devicesStates: DevicesState,
           userPreferences: UserPreferences ->
-        Timber.d("*** devicesUiModelFlow changed ***")
+        Timber.d("*** devicesUiModelFlow changed ${userPreferences.webSocketUrl} ***")
         return@combine DevicesUiModel(
             devices = processDevices(devices, devicesStates, userPreferences),
             showCodelabInfo = !userPreferences.hideCodelabInfo,
-            showOfflineDevices = !userPreferences.hideOfflineDevices)
+            showOfflineDevices = !userPreferences.hideOfflineDevices,
+            webSocketUrl = userPreferences.webSocketUrl)
       }
 
   val devicesUiModelLiveData = devicesUiModelFlow.asLiveData()
@@ -219,6 +226,7 @@ constructor(
     val commissionDeviceRequest =
         CommissioningRequest.builder()
             .setCommissioningService(ComponentName(context, AppCommissioningService::class.java))
+
             .build()
 
     // The call to commissionDevice() creates the IntentSender that will eventually be launched
@@ -346,21 +354,21 @@ constructor(
     viewModelScope.launch {
       val deviceId = result.token?.toLong()!!
       // read device's vendor name and product name
-      val vendorName =
-          try {
+      val vendorName = ""
+          /*try {
             clustersHelper.readBasicClusterVendorNameAttribute(deviceId)
           } catch (ex: Exception) {
             Timber.e(ex, "Failed to read VendorName attribute")
             ""
-          }
+          }*/
 
-      val productName =
-          try {
+      val productName = ""
+/*          try {
             clustersHelper.readBasicClusterProductNameAttribute(deviceId)
           } catch (ex: Exception) {
             Timber.e(ex, "Failed to read ProductName attribute")
             ""
-          }
+          }*/
 
       try {
         Timber.d("Commissioning: Adding device to repository")
@@ -388,6 +396,8 @@ constructor(
             TaskStatus.Failed(
                 "Adding device [${deviceId}] [${deviceName}] to app's repository failed", e))
       }
+
+        return@launch
 
       // Introspect the device and update its deviceType.
       // TODO: Need to get capabilities information and store that in the devices repository.

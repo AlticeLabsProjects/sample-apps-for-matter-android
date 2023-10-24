@@ -17,15 +17,24 @@
 package com.google.homesampleapp
 
 import android.app.Application
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import com.google.homesampleapp.websocket.WebSocketRepository
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
 /** Google Home Sample Application for Matter (GHSAFM) */
 @HiltAndroidApp
-class GHSAFM3pEcoApplication : Application() {
-  override fun onCreate() {
-    super.onCreate()
+class GHSAFM3pEcoApplication : Application(), DefaultLifecycleObserver {
 
+  companion object {
+      var homeAssistantWebSocketRepository: WebSocketRepository? = null
+  }
+
+  override fun onCreate() {
+    super<Application>.onCreate()
+    ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     // Setup Timber for logging.
     Timber.plant(
         object : Timber.DebugTree() {
@@ -42,5 +51,10 @@ class GHSAFM3pEcoApplication : Application() {
            * "%s:%s", super.createStackElementTag(element), element.methodName, ) }
            */
         })
+  }
+
+  override fun onStop(owner: LifecycleOwner) {
+      super.onStop(owner)
+      homeAssistantWebSocketRepository?.shutdown()
   }
 }
