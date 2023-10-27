@@ -25,6 +25,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.navigation.findNavController
+import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
@@ -155,6 +156,10 @@ class SettingsNestedFragment :
       val halfsheetNotificationPref: SwitchPreferenceCompat? =
           findPreference("halfsheet_notification")
       halfsheetNotificationPref?.isChecked = userPreferences.showHalfsheetNotification
+
+        val webSocketUrlPreference: EditTextPreference? =
+            findPreference("web_socket_url")
+        webSocketUrlPreference?.text = userPreferences.webSocketUrl
     }
   }
 }
